@@ -1,41 +1,8 @@
 
 import {Box, Button, Text, TextField, Image} from '@skynexui/components';
-
+import React from "react";
+import { useRouter } from 'next/router';
 import appConfig from '../config.json';
-
-function GlobalStyle() {
-    return (
-        <style global jsx>{`
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-                list-style: none;
-            }
-
-            body {
-                font-family: 'Open Sans', sans-serif;
-            }
-        
-            /*App fit Height */
-            html, body, #__next {
-                min-height: 100vh;
-                display: flex;
-                flex: 1;
-            }
-            #__next {
-                flex: 1;
-            }
-            #__next > * {
-                flex: 1;
-            }
-            /* ./App fit Height */
-        `}</style>
-
-        
-
-    );
-}
 
 
 function Titulo(props) {
@@ -56,29 +23,16 @@ return (
     );
 }
 
-
-//function HomePage() {
-//    //JSX
-//    return (
-//        <div>
-//            <GlobalStyle />
-//            <Titulo tag="h1">Boas vindas de volta!!!</Titulo> 
-//            <h2>Discord do Alura </h2>
-        
-//        </div>
-    
-//    )
-//  }
-   
- // export default HomePage
-
-
-  export default function PaginaInicial() {
-    const username = 'crismgsp';
   
+    export default function PaginaInicial() {
+    
+    const [username, setUsername] = React.useState('');
+    const roteamento = useRouter();
+    const tamanhonome = username.length;
+
     return (
       <>
-        <GlobalStyle />
+        
         <Box
           styleSheet={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -105,6 +59,19 @@ return (
             {/* Formulário */}
             <Box
               as="form"
+              onSubmit={function (infosDoEvento) {
+                infosDoEvento.preventDefault();
+                  if (tamanhonome < 3) {
+                    alert("Não é possível entrar no chat com usuário menor que 3 letras");
+                  }  
+                  else {
+                    roteamento.push('/chat');
+                  }  
+                
+                
+                //window.location.href = '/chat'; outro jeito de ir pra outra pagina
+              
+              }}
               styleSheet={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 width: { xs: '100%', sm: '50%' }, textAlign: 'center', marginBottom: '32px',
@@ -114,17 +81,25 @@ return (
               <Text variant="body3" styleSheet={{ marginBottom: '32px', color: appConfig.theme.colors.neutrals[300] }}>
                 {appConfig.name}
               </Text>
-  
+              
+
               <TextField
+                value={username}
+                onChange={function (event) {
+                  //onde tá o valor a ser mudado
+                  const valor = event.target.value;
+                  //trocar o valor da variavel com o react
+                  setUsername(valor);   
+                }}  
                 fullWidth
-                textFieldColors={{
+                /*textFieldColors={{
                   neutral: {
                     textColor: appConfig.theme.colors.neutrals[200],
                     mainColor: appConfig.theme.colors.neutrals[900],
                     mainColorHighlight: appConfig.theme.colors.primary[500],
                     backgroundColor: appConfig.theme.colors.neutrals[800],
                   },
-                }}
+                }} */
               />
               <Button
                 type='submit'
@@ -162,7 +137,7 @@ return (
                   borderRadius: '50%',
                   marginBottom: '16px',
                 }}
-                src={`https://t4.ftcdn.net/jpg/01/05/47/15/240_F_105471526_j4FGbjCVY4JCDuTdFOE7SfizXsVifVYF.jpg`}
+                src={`https://github.com/${username}.png`}
               />
               <Text
                 variant="body4"
