@@ -1,31 +1,67 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
+import { createClient} from '@supabase/supabase-js'
+
+//como fazer AJAX:https://medium.com/@omariosouto/entendendo-como-fazer-ajax-com-a-fetchapi-977ff20da3c6
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxMDg5MSwiZXhwIjoxOTU4ODg2ODkxfQ.GDuc0lFapkeF8kSHF9SdECP8-VB_QwJi2cK303-WS4o'
+const SUPABASE_URL = 'https://vkrerrydbaustrhvtzjb.supabase.co';
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 
 export default function ChatPage() {
     // Sua lÃ³gica vai aqui
     const [mensagem, setMensagem] = React.useState('');
-    const [listaDeMensagens, setListadeMensagens] = React.useState([]);
+    const [listaDeMensagens, setListaDeMensagens] = React.useState([]);
     // ./Sua lÃ³gica vai aqui
+
+    React.useEffect(() => {
+        supabaseClient
+            .from('mensagens')
+            .select("*")
+            .order('id', {ascending: false})
+            .then(({data})=> {
+                setListaDeMensagens(data);
+            });
+
+    }, []);
+
+    
+    //const dadosDoSupabase = supabaseClient
+    //.from('mensagens')
+    //.select('*');
 
     function handleNovaMensagem(novaMensagem) {
         const mensagem = {
-            id: listaDeMensagens.length + 1,
+            //id: listaDeMensagens.length + 1,
             de: 'crismgsp',
             texto: novaMensagem,
         };
-        setListadeMensagens([
-            mensagem,
-            ...listaDeMensagens,
-        ]);
+
+        supabaseClient
+            .from('mensagens')
+            .insert([
+                //vai fazer um insert no banco de dados nome do objeto tem que ser igual nome do campo do banco de dados
+                mensagem
+            ])
+        .then(( {data}) => {
+            setListaDeMensagens([
+                data[0],  // substitiu o termo mensagem por data é o dado na posicao 0 da lista, ele ta chamando de data no console so o que foi inserido..a ultima mensagem
+                ...listaDeMensagens,
+                ]);
+          
+        });   
+
+       
         setMensagem('');
     }
     return (
         <Box
             styleSheet={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                backgroundColor: appConfig.theme.colors.primary[500],
-                backgroundImage: `url(https://virtualbackgrounds.site/wp-content/uploads/2020/08/the-matrix-digital-rain.jpg)`,
+                //backgroundColor: appConfig.theme.colors.primary[500],
+                backgroundColor: 'lightgreen',
+                //backgroundImage: `url(https://virtualbackgrounds.site/wp-content/uploads/2020/08/the-matrix-digital-rain.jpg)`,
                 backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundBlendMode: 'multiply',
                 color: appConfig.theme.colors.neutrals['000']
             }}
@@ -37,7 +73,8 @@ export default function ChatPage() {
                     flex: 1,
                     boxShadow: '0 2px 10px 0 rgb(0 0 0 / 20%)',
                     borderRadius: '5px',
-                    backgroundColor: appConfig.theme.colors.neutrals[700],
+                    //backgroundColor: appConfig.theme.colors.neutrals[200],
+                    backgroundColor: 'lightblue',
                     height: '100%',
                     maxWidth: '95%',
                     maxHeight: '95vh',
@@ -51,7 +88,8 @@ export default function ChatPage() {
                         display: 'flex',
                         flex: 1,
                         height: '80%',
-                        backgroundColor: appConfig.theme.colors.neutrals[600],
+                        //backgroundColor: appConfig.theme.colors.neutrals[600],
+                        backgroundColor: 'pink',
                         flexDirection: 'column',
                         borderRadius: '5px',
                         padding: '16px',
@@ -84,17 +122,13 @@ export default function ChatPage() {
                             }}
                             onKeyPress={(event) => {
                                 if (event.key === 'Enter') {
-                                    //event.preventDefault();
+                                    event.preventDefault();
                                     handleNovaMensagem(mensagem);
 
                                 }
                             
                             }}
 
-                                      
-                            
-                                                
-                        
                             placeholder="Insira sua mensagem aqui..."
                             type="textarea"
                             styleSheet={{
@@ -103,9 +137,10 @@ export default function ChatPage() {
                                 resize: 'none',
                                 borderRadius: '5px',
                                 padding: '6px 8px',
-                                backgroundColor: appConfig.theme.colors.neutrals[800],
+                                backgroundColor: appConfig.theme.colors.neutrals[200],
                                 marginRight: '12px',
                                 color: appConfig.theme.colors.neutrals[200],
+                                
                             }}
                             
                         
@@ -131,6 +166,7 @@ function Header() {
                 <Button
                     variant='tertiary'
                     colorVariant='neutral'
+                    
                     label='Logout'
                     href="/"
                 />
@@ -149,7 +185,8 @@ function MessageList(props) {
                 display: 'flex',
                 flexDirection: 'column-reverse',
                 flex: 1,
-                color: appConfig.theme.colors.neutrals["000"],
+                //cor da letra do texto
+                color: appConfig.theme.colors.neutrals["500"],
                 marginBottom: '16px',
             }}
         >
@@ -163,7 +200,7 @@ function MessageList(props) {
                             padding: '6px',
                             marginBottom: '12px',
                             hover: {
-                                backgroundColor: appConfig.theme.colors.neutrals[700],
+                                backgroundColor: appConfig.theme.colors.neutrals[100],
                             }
                         }}
                     >
@@ -179,8 +216,9 @@ function MessageList(props) {
                                     borderRadius: '50%',
                                     display: 'inline-block',
                                     marginRight: '8px',
-                                }}
-                                src={`https://github.com/crismgsp.png`}
+                                    
+                            }}
+                                src={`https://github.com/${mensagem.de}.png`}
                             />
                             <Text tag="strong">
                                 {mensagem.de}
@@ -189,7 +227,8 @@ function MessageList(props) {
                                 styleSheet={{
                                     fontSize: '10px',
                                     marginLeft: '8px',
-                                    color: appConfig.theme.colors.neutrals[300],
+                                    //color: appConfig.theme.colors.neutrals[300],
+                                    color: 'red',
                                 }}
                                 tag="span"
                             >

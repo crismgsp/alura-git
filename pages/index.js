@@ -4,7 +4,6 @@ import React from "react";
 import { useRouter } from 'next/router';
 import appConfig from '../config.json';
 
-
 function Titulo(props) {
 const Tag = props.tag; 
 return (
@@ -12,9 +11,9 @@ return (
         <Tag>{props.children}</Tag>
         <style jsx>{`
         ${Tag} {
-            color: ${appConfig.theme.colors.neutrals['400']};
+            color: ${appConfig.theme.colors.neutrals['300']};
             font-size: 24px;
-            font-weight: 600;
+            font-weight: 700;
         }    
         `}
         </style>
@@ -36,8 +35,8 @@ return (
         <Box
           styleSheet={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backgroundColor: appConfig.theme.colors.primary[500],
-            backgroundImage: 'url(https://media.istockphoto.com/photos/yellow-flowers-on-wooden-background-picture-id925248764)',
+            backgroundColor: appConfig.theme.colors.primary[100],
+            //backgroundImage: 'url(https://media.istockphoto.com/photos/yellow-flowers-on-wooden-background-picture-id925248764)',
             backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundBlendMode: 'multiply',
           }}
         >
@@ -53,7 +52,9 @@ return (
               width: '100%', maxWidth: '700px',
               borderRadius: '5px', padding: '32px', margin: '16px',
               boxShadow: '0 2px 10px 0 rgb(0 0 0 / 20%)',
-              backgroundColor: appConfig.theme.colors.neutrals[700],
+              //backgroundColor: appConfig.theme.colors.neutrals[400],
+              backgroundColor: 'lightpink',
+
             }}
           >
             {/* Formulário */}
@@ -107,7 +108,7 @@ return (
                 fullWidth
                 buttonColors={{
                   contrastColor: appConfig.theme.colors.neutrals["000"],
-                  mainColor: appConfig.theme.colors.primary[500],
+                  mainColor: appConfig.theme.colors.primary[300],
                   mainColorLight: appConfig.theme.colors.primary[400],
                   mainColorStrong: appConfig.theme.colors.primary[600],
                 }}
@@ -124,7 +125,7 @@ return (
                 alignItems: 'center',
                 maxWidth: '200px',
                 padding: '16px',
-                backgroundColor: appConfig.theme.colors.neutrals[800],
+                backgroundColor: appConfig.theme.colors.neutrals[200],
                 border: '1px solid',
                 borderColor: appConfig.theme.colors.neutrals[999],
                 borderRadius: '10px',
@@ -136,6 +137,9 @@ return (
                 styleSheet={{
                   borderRadius: '50%',
                   marginBottom: '16px',
+                  hover: {
+                    borderRadius: '10%',                
+                  }
                 }}
                 src={`https://github.com/${username}.png`}
               />
