@@ -66,7 +66,7 @@ return (
                     alert("Não é possível entrar no chat com usuário menor que 3 letras");
                   }  
                   else {
-                    roteamento.push('/chat');
+                    roteamento.push(`/chat?username=${username}`);
                   }  
                 
                 

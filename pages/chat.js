@@ -1,40 +1,88 @@
-import { Box, Text, TextField, Image, Button } from '@skynexui/components';
+import { Box, Text, TextField, Image, Button, Icon } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
-import { createClient} from '@supabase/supabase-js'
+import { useRouter } from 'next/router';
+import { createClient } from '@supabase/supabase-js'
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker';
+
 
 //como fazer AJAX:https://medium.com/@omariosouto/entendendo-como-fazer-ajax-com-a-fetchapi-977ff20da3c6
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxMDg5MSwiZXhwIjoxOTU4ODg2ODkxfQ.GDuc0lFapkeF8kSHF9SdECP8-VB_QwJi2cK303-WS4o'
 const SUPABASE_URL = 'https://vkrerrydbaustrhvtzjb.supabase.co';
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+function escutaMensagemEmTempoReal(adicionaMensagem) {
+    return supabaseClient
+        .from('mensagens')
+        .on('INSERT', (respostaLive) => {
+            adicionaMensagem(respostaLive.new);
+
+        })
+        .subscribe();
+}
+
 
 export default function ChatPage() {
-    // Sua lÃ³gica vai aqui
+    const roteamento = useRouter();
+    const usuarioLogado = roteamento.query.username;
+    console.log('usuarioLogado', usuarioLogado);
     const [mensagem, setMensagem] = React.useState('');
     const [listaDeMensagens, setListaDeMensagens] = React.useState([]);
-    // ./Sua lÃ³gica vai aqui
 
-    React.useEffect(() => {
-        supabaseClient
-            .from('mensagens')
-            .select("*")
-            .order('id', {ascending: false})
-            .then(({data})=> {
-                setListaDeMensagens(data);
+
+        React.useEffect(() => {
+            supabaseClient
+                .from('mensagens')
+                .select("*")
+                .order('id', { ascending: false })
+                .then(({ data }) => {
+                    setListaDeMensagens(data);
+                });
+            escutaMensagemEmTempoReal((novaMensagem) => {
+                //handleNovaMensagem(novaMensagem)  isto aqui, neste lugar estava causando loop infinito....cadastrando a msg varias vezes
+                //quando quer reusar um valor de referencia objeto/array passa uma funcao para setState
+                setListaDeMensagens((valorAtualDaLista) => {
+                    return [
+                        novaMensagem,  // substitiu o termo mensagem por data é o dado na posicao 0 da lista, ele ta chamando de data no console so o que foi inserido..a ultima mensagem
+                        ...valorAtualDaLista,
+                    ]
+                });
             });
+         
+            //return() => {
+              //  PushSubscription.unsubscribe();
+            //}    
+        }, []);
 
-    }, []);
+        const mensagemID = (mensagem.id);
+
+    function handleDelete(mensagemID){    
+        const handleDelete = async(mensagemID) => {
+        const { data, error } = await supabaseClient
+        .from('mensagens')
+        .delete()
+        .match({ id: mensagemID });
+        }
+    };
 
     
-    //const dadosDoSupabase = supabaseClient
-    //.from('mensagens')
-    //.select('*');
+
+
+        //.then(({ data}) => {
+        //  const apagarelemento = listaDeMensagens.filter(
+        //    (mensagem) => mensagem.id == mensagemID
+        //)    
+        //});
+        //setListaDeMensagens(hande);
+
+    
+
+
 
     function handleNovaMensagem(novaMensagem) {
         const mensagem = {
             //id: listaDeMensagens.length + 1,
-            de: 'crismgsp',
+            de: usuarioLogado,
             texto: novaMensagem,
         };
 
@@ -44,17 +92,15 @@ export default function ChatPage() {
                 //vai fazer um insert no banco de dados nome do objeto tem que ser igual nome do campo do banco de dados
                 mensagem
             ])
-        .then(( {data}) => {
-            setListaDeMensagens([
-                data[0],  // substitiu o termo mensagem por data é o dado na posicao 0 da lista, ele ta chamando de data no console so o que foi inserido..a ultima mensagem
-                ...listaDeMensagens,
-                ]);
-          
-        });   
+            .then(({ data }) => {
+                //     
 
-       
+            });
+
+
         setMensagem('');
     }
+
     return (
         <Box
             styleSheet={{
@@ -93,68 +139,73 @@ export default function ChatPage() {
                         flexDirection: 'column',
                         borderRadius: '5px',
                         padding: '16px',
+
                     }}
+
                 >
 
-                    <MessageList mensagens={listaDeMensagens} />
-                    {/*listaDeMensagens.map((mensagemAtual) => {
-                        return (
-                            <li key={mensagemAtual.id}>
-                                {mensagemAtual.de}:{mensagemAtual.texto}
-                            </li>
-                        )
+                    <MessageList
+                        mensagens={listaDeMensagens}
+                        onDelete={handleDelete}
 
-                    })*/}
+                    />
 
-
-                    <Box
-                        as="form"
-                        styleSheet={{
-                            display: 'flex',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <TextField
-                            value={mensagem}
-                            onChange={(event) => {
-                                const valor = event.target.value;
-                                setMensagem(valor);
-                            }}
-                            onKeyPress={(event) => {
-                                if (event.key === 'Enter') {
-                                    event.preventDefault();
-                                    handleNovaMensagem(mensagem);
-
-                                }
-                            
-                            }}
-
-                            placeholder="Insira sua mensagem aqui..."
-                            type="textarea"
-                            styleSheet={{
-                                width: '100%',
-                                border: '0',
-                                resize: 'none',
-                                borderRadius: '5px',
-                                padding: '6px 8px',
-                                backgroundColor: appConfig.theme.colors.neutrals[200],
-                                marginRight: '12px',
-                                color: appConfig.theme.colors.neutrals[200],
-                                
-                            }}
-                            
                         
-                                                                           
 
-                        />
 
-                      
-                    </Box>
+                        <Box
+                            as="form"
+                            styleSheet={{
+                                display: 'flex',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <TextField
+                                value={mensagem}
+                                onChange={(event) => {
+                                    const valor = event.target.value;
+                                    setMensagem(valor);
+                                }}
+                                onKeyPress={(event) => {
+                                    if (event.key === 'Enter') {
+                                        event.preventDefault();
+                                        handleNovaMensagem(mensagem);
+
+                                    }
+
+
+                                }}
+
+
+                                placeholder="Insira sua mensagem aqui..."
+                                type="textarea"
+                                styleSheet={{
+                                    width: '100%',
+                                    border: '0',
+                                    resize: 'none',
+                                    borderRadius: '5px',
+                                    padding: '6px 8px',
+                                    backgroundColor: appConfig.theme.colors.neutrals[200],
+                                    marginRight: '12px',
+                                    color: appConfig.theme.colors.neutrals[900],
+
+
+                                }}
+
+                            />
+                            <ButtonSendSticker
+                                onStickerClick={(sticker) => {
+                                    handleNovaMensagem(':sticker: ' + sticker);
+                                }}
+                            />
+
+                        </Box>
                 </Box>
             </Box>
         </Box>
     )
 }
+
 
 function Header() {
     return (
@@ -166,7 +217,7 @@ function Header() {
                 <Button
                     variant='tertiary'
                     colorVariant='neutral'
-                    
+
                     label='Logout'
                     href="/"
                 />
@@ -189,6 +240,9 @@ function MessageList(props) {
                 color: appConfig.theme.colors.neutrals["500"],
                 marginBottom: '16px',
             }}
+
+            
+
         >
             {props.mensagens.map((mensagem) => {
                 return (
@@ -203,7 +257,32 @@ function MessageList(props) {
                                 backgroundColor: appConfig.theme.colors.neutrals[100],
                             }
                         }}
+                        
+
                     >
+
+                        <Icon
+
+                            name="FaTrash"
+                            label="Apagar tudo"
+                            styleSheet={{
+                            display: "flex",
+                            alignItems: "center",
+                            margin: "10px",
+                            width: "10px",
+                            position: "absolute",
+                            justifyContent: "space-between",
+                            hover: {
+                            color: "blue",
+                            }
+
+                            }}
+                            onClick={(e) => {
+                            e.preventDefault();
+                            handleDelete(mensagem.id);
+                            }}
+
+                        />
                         <Box
                             styleSheet={{
                                 marginBottom: '8px',
@@ -216,8 +295,8 @@ function MessageList(props) {
                                     borderRadius: '50%',
                                     display: 'inline-block',
                                     marginRight: '8px',
-                                    
-                            }}
+
+                                }}
                                 src={`https://github.com/${mensagem.de}.png`}
                             />
                             <Text tag="strong">
@@ -235,7 +314,15 @@ function MessageList(props) {
                                 {(new Date().toLocaleDateString())}
                             </Text>
                         </Box>
-                        {mensagem.texto}
+                        {/*Condicional: {mensagem.texto.startsWith(':sticker:').toString()*/}
+                        {mensagem.texto.startsWith(':sticker:') //abaixo um jeito de fazer if else no react..modo declarativo...
+                            ? (
+                                <Image src={mensagem.texto.replace(':sticker:', '')} />
+                            )
+                            : (
+                                mensagem.texto
+                            )}
+
                     </Text>
                 );
             })}
