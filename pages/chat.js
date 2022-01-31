@@ -38,7 +38,7 @@ export default function ChatPage() {
                 .then(({ data }) => {
                     setListaDeMensagens(data);
                 });
-            escutaMensagemEmTempoReal((novaMensagem) => {
+            const subscription = escutaMensagemEmTempoReal((novaMensagem) => {
                 //handleNovaMensagem(novaMensagem)  isto aqui, neste lugar estava causando loop infinito....cadastrando a msg varias vezes
                 //quando quer reusar um valor de referencia objeto/array passa uma funcao para setState
                 setListaDeMensagens((valorAtualDaLista) => {
@@ -49,35 +49,36 @@ export default function ChatPage() {
                 });
             });
          
-            //return() => {
-              //  PushSubscription.unsubscribe();
-            //}    
+            return() => {
+                subscription.unsubscribe();
+            }    
         }, []);
 
-        const mensagemID = (mensagem.id);
+    const mensagemID = (mensagem.id);
 
-    function handleDelete(mensagemID){    
-        const handleDelete = async(mensagemID) => {
+    //async function handleDelete(mensagemID) {
+      //  const { data, error } = await supabaseClient
+        //.from('mensagens')
+        //.delete()
+        //.match({ id: mensagemID });
+    //};
+        
+           
+    const handleDelete = async (mensagemID) => {
         const { data, error } = await supabaseClient
-        .from('mensagens')
-        .delete()
-        .match({ id: mensagemID });
-        }
+            .from('mensagens')
+            .delete()
+            .match({ id: mensagemID });
+            
     };
 
-    
-
-
+   
         //.then(({ data}) => {
         //  const apagarelemento = listaDeMensagens.filter(
         //    (mensagem) => mensagem.id == mensagemID
         //)    
         //});
         //setListaDeMensagens(hande);
-
-    
-
-
 
     function handleNovaMensagem(novaMensagem) {
         const mensagem = {
@@ -102,6 +103,9 @@ export default function ChatPage() {
     }
 
     return (
+
+    
+
         <Box
             styleSheet={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -146,60 +150,59 @@ export default function ChatPage() {
 
                     <MessageList
                         mensagens={listaDeMensagens}
-                        onDelete={handleDelete}
+                        ondelete={handleDelete}
 
                     />
 
-                        
+                     
 
-
-                        <Box
-                            as="form"
-                            styleSheet={{
-                                display: 'flex',
-                                alignItems: 'center',
+                    <Box
+                        as="form"
+                        styleSheet={{
+                            display: 'flex',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <TextField
+                            value={mensagem}
+                            onChange={(event) => {
+                                const valor = event.target.value;
+                                setMensagem(valor);
                             }}
-                        >
-                            <TextField
-                                value={mensagem}
-                                onChange={(event) => {
-                                    const valor = event.target.value;
-                                    setMensagem(valor);
-                                }}
-                                onKeyPress={(event) => {
-                                    if (event.key === 'Enter') {
-                                        event.preventDefault();
-                                        handleNovaMensagem(mensagem);
+                            onKeyPress={(event) => {
+                                if (event.key === 'Enter') {
+                                    event.preventDefault();
+                                    handleNovaMensagem(mensagem);
 
-                                    }
+                                }
 
 
-                                }}
+                            }}
 
 
-                                placeholder="Insira sua mensagem aqui..."
-                                type="textarea"
-                                styleSheet={{
-                                    width: '100%',
-                                    border: '0',
-                                    resize: 'none',
-                                    borderRadius: '5px',
-                                    padding: '6px 8px',
-                                    backgroundColor: appConfig.theme.colors.neutrals[200],
-                                    marginRight: '12px',
-                                    color: appConfig.theme.colors.neutrals[900],
+                            placeholder="Insira sua mensagem aqui..."
+                            type="textarea"
+                            styleSheet={{
+                                width: '100%',
+                                border: '0',
+                                resize: 'none',
+                                borderRadius: '5px',
+                                padding: '6px 8px',
+                                backgroundColor: appConfig.theme.colors.neutrals[200],
+                                marginRight: '12px',
+                                color: appConfig.theme.colors.neutrals[900],
 
 
-                                }}
+                            }}
 
-                            />
-                            <ButtonSendSticker
-                                onStickerClick={(sticker) => {
-                                    handleNovaMensagem(':sticker: ' + sticker);
-                                }}
-                            />
+                        />
+                        <ButtonSendSticker
+                            onStickerClick={(sticker) => {
+                                handleNovaMensagem(':sticker: ' + sticker);
+                            }}
+                        />
 
-                        </Box>
+                    </Box>
                 </Box>
             </Box>
         </Box>
@@ -212,7 +215,7 @@ function Header() {
         <>
             <Box styleSheet={{ width: '100%', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} >
                 <Text variant='heading5'>
-                    Chat
+                    Chat ****  Após apagar tem que dar um refresh pra sumir a mensagem :( (nivel iniciante)
                 </Text>
                 <Button
                     variant='tertiary'
@@ -222,12 +225,18 @@ function Header() {
                     href="/"
                 />
             </Box>
-        </>
+    
+        </> 
+        
     )
 }
 
+
+
 function MessageList(props) {
-    console.log('MessageList', props);
+    
+    console.log(props);
+    
     return (
         <Box
             tag="ul"
@@ -241,11 +250,10 @@ function MessageList(props) {
                 marginBottom: '16px',
             }}
 
-            
-
         >
             {props.mensagens.map((mensagem) => {
                 return (
+                    
                     <Text
                         key={mensagem.id}
                         tag="li"
@@ -257,32 +265,29 @@ function MessageList(props) {
                                 backgroundColor: appConfig.theme.colors.neutrals[100],
                             }
                         }}
-                        
-
+                   
                     >
 
-                        <Icon
+                                               
+                        <Button
+                            onClick={(event) => {
+                                event.preventDefault();
+                                props.ondelete(mensagem.id);        
 
-                            name="FaTrash"
-                            label="Apagar tudo"
+                            }}                    
+                            colorVariant="neutral"
+                            label="Apagar"
                             styleSheet={{
-                            display: "flex",
-                            alignItems: "center",
-                            margin: "10px",
-                            width: "10px",
-                            position: "absolute",
-                            justifyContent: "space-between",
-                            hover: {
-                            color: "blue",
-                            }
-
+                              background: "#9370DB",
+                              borderRadius: "100%",
+                              right: "-10px",
+          
+                              hover: {
+                                backgroundColor: "#FF1493",
+                              },
                             }}
-                            onClick={(e) => {
-                            e.preventDefault();
-                            handleDelete(mensagem.id);
-                            }}
-
-                        />
+                        /> 
+                    
                         <Box
                             styleSheet={{
                                 marginBottom: '8px',
